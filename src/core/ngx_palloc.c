@@ -20,18 +20,18 @@ ngx_create_pool(size_t size, ngx_log_t *log)
 {
     ngx_pool_t  *p;
 
-    p = ngx_memalign(NGX_POOL_ALIGNMENT, size, log);
+    p = ngx_memalign(NGX_POOL_ALIGNMENT, size, log);//申请对齐的内存 地址为NGX_POOL_ALIGNMENT的倍数，大小为size，返回申请地址
     if (p == NULL) {
         return NULL;
     }
 
-    p->d.last = (u_char *) p + sizeof(ngx_pool_t);
-    p->d.end = (u_char *) p + size;
-    p->d.next = NULL;
-    p->d.failed = 0;
+    p->d.last = (u_char *) p + sizeof(ngx_pool_t);//指向ngx_pool_t结构体之后的位置
+    p->d.end = (u_char *) p + size;//内存池结束位置
+    p->d.next = NULL;//初始状态下块内存地址为null
+    p->d.failed = 0;//初始失败次数为0
 
-    size = size - sizeof(ngx_pool_t);
-    p->max = (size < NGX_MAX_ALLOC_FROM_POOL) ? size : NGX_MAX_ALLOC_FROM_POOL;
+    size = size - sizeof(ngx_pool_t);//可使用的空间减去ngx_pool_t的大小
+    p->max = (size < NGX_MAX_ALLOC_FROM_POOL) ? size : NGX_MAX_ALLOC_FROM_POOL;//NGX_MAX_ALLOC_FROM_POOL为getpagesize()定义一般为4kb
 
     p->current = p;
     p->chain = NULL;
@@ -44,7 +44,7 @@ ngx_create_pool(size_t size, ngx_log_t *log)
 
 
 void
-ngx_destroy_pool(ngx_pool_t *pool)
+ngx_destroy_pool(ngx_pool_t *pool)//由释放内存池的callback 依次销毁
 {
     ngx_pool_t          *p, *n;
     ngx_pool_large_t    *l;
@@ -97,7 +97,7 @@ ngx_destroy_pool(ngx_pool_t *pool)
 
 
 void
-ngx_reset_pool(ngx_pool_t *pool)
+ngx_reset_pool(ngx_pool_t *pool)//重置pool
 {
     ngx_pool_t        *p;
     ngx_pool_large_t  *l;
@@ -108,7 +108,7 @@ ngx_reset_pool(ngx_pool_t *pool)
         }
     }
 
-    for (p = pool; p; p = p->d.next) {
+    for (p = pool; p; p = p->d.next) {//将可分配的内存块指针重新指向init时的开头
         p->d.last = (u_char *) p + sizeof(ngx_pool_t);
         p->d.failed = 0;
     }
@@ -120,7 +120,7 @@ ngx_reset_pool(ngx_pool_t *pool)
 
 
 void *
-ngx_palloc(ngx_pool_t *pool, size_t size)
+ngx_palloc(ngx_pool_t *pool, size_t size)//申请内存
 {
 #if !(NGX_DEBUG_PALLOC)
     if (size <= pool->max) {
@@ -158,15 +158,19 @@ ngx_palloc_small(ngx_pool_t *pool, size_t size, ngx_uint_t align)
 
         if (align) {
             m = ngx_align_ptr(m, NGX_ALIGNMENT);
+            /*NGX_ALIGNMENT为unsignedlong大小 
+            ngx_align_ptr(p, a)  (u_char *) (((uintptr_t) (p) + ((uintptr_t) a - 1)) & ~((uintptr_t) a - 1))
+            NGX_ALIGNMENT为2的N次幂~((uintptr_t) a - 1)n+1位为1后n位为0 与上 p+a-1 使得m位置为 NGX_ALIGNMENT倍(即令m的位置内存对齐 提高寻址速度)
+            */
         }
 
-        if ((size_t) (p->d.end - m) >= size) {
+        if ((size_t) (p->d.end - m) >= size) {//剩余块内空间大于需要分配的空间则分配返回
             p->d.last = m + size;
 
             return m;
         }
 
-        p = p->d.next;
+        p = p->d.next;//不足查找下块
 
     } while (p);
 
@@ -181,9 +185,9 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size)
     size_t       psize;
     ngx_pool_t  *p, *new;
 
-    psize = (size_t) (pool->d.end - (u_char *) pool);
+    psize = (size_t) (pool->d.end - (u_char *) pool);//计算pool的大小 
 
-    m = ngx_memalign(NGX_POOL_ALIGNMENT, psize, pool->log);
+    m = ngx_memalign(NGX_POOL_ALIGNMENT, psize, pool->log);//分配一块与pool大小相同的内存 
     if (m == NULL) {
         return NULL;
     }
@@ -194,13 +198,13 @@ ngx_palloc_block(ngx_pool_t *pool, size_t size)
     new->d.next = NULL;
     new->d.failed = 0;
 
-    m += sizeof(ngx_pool_data_t);
-    m = ngx_align_ptr(m, NGX_ALIGNMENT);
+    m += sizeof(ngx_pool_data_t);//让m指向该块内存ngx_pool_data_t结构体之后数据区起始位置  导致此处新建的last起始位置与create出的起始位置不同
+    m = ngx_align_ptr(m, NGX_ALIGNMENT);//对齐
     new->d.last = m + size;
 
     for (p = pool->current; p->d.next; p = p->d.next) {
-        if (p->d.failed++ > 4) {
-            pool->current = p->d.next;
+        if (p->d.failed++ > 4) {//failed的值只在此处被修改  
+            pool->current = p->d.next;//失败4次以上移动current指针  
         }
     }
 

@@ -1,0 +1,13 @@
+---- ngx_memalign Matches (3 in 1 files) ----
+Ngx_palloc.c (core):23
+    p = ngx_memalign(NGX_POOL_ALIGNMENT, size, log);
+    if (p == NULL) {
+        return NULL;
+Ngx_palloc.c (core):186
+    m = ngx_memalign(NGX_POOL_ALIGNMENT, psize, pool->log);
+    if (m == NULL) {
+        return NULL;
+Ngx_palloc.c (core):258
+    p = ngx_memalign(alignment, size, pool->log);
+    if (p == NULL) {
+        return NULL;

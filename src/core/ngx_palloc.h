@@ -56,7 +56,7 @@ typedef struct {
 
 struct ngx_pool_s {//内存池头部结构  ngx_pool_t
     ngx_pool_data_t       d;//内存池的数据块  
-    size_t                max;//内存池数据块的最大值  
+    size_t                max;//内存池数据块可用的最大值  
     ngx_pool_t           *current;//指向当前内存池  
     ngx_chain_t          *chain;//该指针挂接一个ngx_chain_t结构  
     ngx_pool_large_t     *large; //大块内存链表，即分配空间超过max的内存  
