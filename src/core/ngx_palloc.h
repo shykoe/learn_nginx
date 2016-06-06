@@ -32,7 +32,7 @@ typedef void (*ngx_pool_cleanup_pt)(void *data);
 typedef struct ngx_pool_cleanup_s  ngx_pool_cleanup_t;
 
 struct ngx_pool_cleanup_s {
-    ngx_pool_cleanup_pt   handler;//ngx_pool_large_s
+    ngx_pool_cleanup_pt   handler;//清除的函数
     void                 *data;//指向要清除的数据  
     ngx_pool_cleanup_t   *next;//下一个cleanup callback  
 };
@@ -79,11 +79,11 @@ ngx_pool_t *ngx_create_pool(size_t size, ngx_log_t *log);
 void ngx_destroy_pool(ngx_pool_t *pool);
 void ngx_reset_pool(ngx_pool_t *pool);
 
-void *ngx_palloc(ngx_pool_t *pool, size_t size);
-void *ngx_pnalloc(ngx_pool_t *pool, size_t size);
+void *ngx_palloc(ngx_pool_t *pool, size_t size);//返回内存池对齐的位置的可用内存
+void *ngx_pnalloc(ngx_pool_t *pool, size_t size);//返回非对齐位置的可用内存
 void *ngx_pcalloc(ngx_pool_t *pool, size_t size);
-void *ngx_pmemalign(ngx_pool_t *pool, size_t size, size_t alignment);
-ngx_int_t ngx_pfree(ngx_pool_t *pool, void *p);
+void *ngx_pmemalign(ngx_pool_t *pool, size_t size, size_t alignment);//申请alignment对齐的size大小内存并挂载到large链表首
+ngx_int_t ngx_pfree(ngx_pool_t *pool, void *p);//释放所有large_t的内存
 
 
 ngx_pool_cleanup_t *ngx_pool_cleanup_add(ngx_pool_t *p, size_t size);

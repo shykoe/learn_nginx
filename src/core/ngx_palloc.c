@@ -20,7 +20,7 @@ ngx_create_pool(size_t size, ngx_log_t *log)
 {
     ngx_pool_t  *p;
 
-    p = ngx_memalign(NGX_POOL_ALIGNMENT, size, log);//申请对齐的内存 地址为NGX_POOL_ALIGNMENT的倍数，大小为size，返回申请地址
+    p = ngx_memalign(NGX_POOL_ALIGNMENT, size, log);//使用posix_memalign申请对齐的内存(其实malloc申请的也是对齐的内存,不过此函数的选择多些) 地址为NGX_POOL_ALIGNMENT的倍数，大小为size，返回申请地址
     if (p == NULL) {
         return NULL;
     }
@@ -120,11 +120,11 @@ ngx_reset_pool(ngx_pool_t *pool)//重置pool
 
 
 void *
-ngx_palloc(ngx_pool_t *pool, size_t size)//申请内存
+ngx_palloc(ngx_pool_t *pool, size_t size)//申请内存 如果大小大于pool的max则由内核在堆里申请挂接到large_t链表里否则在pool
 {
 #if !(NGX_DEBUG_PALLOC)
     if (size <= pool->max) {
-        return ngx_palloc_small(pool, size, 1);
+        return ngx_palloc_small(pool, size, 1);//对齐
     }
 #endif
 
@@ -137,7 +137,7 @@ ngx_pnalloc(ngx_pool_t *pool, size_t size)
 {
 #if !(NGX_DEBUG_PALLOC)
     if (size <= pool->max) {
-        return ngx_palloc_small(pool, size, 0);
+        return ngx_palloc_small(pool, size, 0);//不要求对齐
     }
 #endif
 
@@ -174,12 +174,12 @@ ngx_palloc_small(ngx_pool_t *pool, size_t size, ngx_uint_t align)
 
     } while (p);
 
-    return ngx_palloc_block(pool, size);
+    return ngx_palloc_block(pool, size);//都不够则新建一块ngx_pool_t挂载链表上
 }
 
 
 static void *
-ngx_palloc_block(ngx_pool_t *pool, size_t size)
+ngx_palloc_block(ngx_pool_t *pool, size_t size)//申请新的一块ngx_pool_t挂载链表上
 {
     u_char      *m;
     size_t       psize;
@@ -221,14 +221,14 @@ ngx_palloc_large(ngx_pool_t *pool, size_t size)
     ngx_uint_t         n;
     ngx_pool_large_t  *large;
 
-    p = ngx_alloc(size, pool->log);
+    p = ngx_alloc(size, pool->log);//使用malloc申请内存
     if (p == NULL) {
         return NULL;
     }
 
     n = 0;
 
-    for (large = pool->large; large; large = large->next) {
+    for (large = pool->large; large; large = large->next) {//挂接的large块内存数量小于等于3则将新申请的内存挂接在上面
         if (large->alloc == NULL) {
             large->alloc = p;
             return p;
@@ -239,7 +239,7 @@ ngx_palloc_large(ngx_pool_t *pool, size_t size)
         }
     }
 
-    large = ngx_palloc_small(pool, sizeof(ngx_pool_large_t), 1);
+    large = ngx_palloc_small(pool, sizeof(ngx_pool_large_t), 1);//超过4块把新申请的large块内存放在链表首
     if (large == NULL) {
         ngx_free(p);
         return NULL;
@@ -254,12 +254,12 @@ ngx_palloc_large(ngx_pool_t *pool, size_t size)
 
 
 void *
-ngx_pmemalign(ngx_pool_t *pool, size_t size, size_t alignment)
+ngx_pmemalign(ngx_pool_t *pool, size_t size, size_t alignment)//申请alignment对齐的size大小内存并挂载到large链表首
 {
     void              *p;
     ngx_pool_large_t  *large;
 
-    p = ngx_memalign(alignment, size, pool->log);
+    p = ngx_memalign(alignment, size, pool->log);//申请对齐的内存
     if (p == NULL) {
         return NULL;
     }
@@ -279,7 +279,7 @@ ngx_pmemalign(ngx_pool_t *pool, size_t size, size_t alignment)
 
 
 ngx_int_t
-ngx_pfree(ngx_pool_t *pool, void *p)
+ngx_pfree(ngx_pool_t *pool, void *p)//释放所有large_t的内存
 {
     ngx_pool_large_t  *l;
 
@@ -299,7 +299,7 @@ ngx_pfree(ngx_pool_t *pool, void *p)
 
 
 void *
-ngx_pcalloc(ngx_pool_t *pool, size_t size)
+ngx_pcalloc(ngx_pool_t *pool, size_t size)//申请size大小的内存并置0 如果大小大于pool的max则由内核在堆里申请挂接到large_t链表里否则在pool
 {
     void *p;
 
@@ -313,7 +313,7 @@ ngx_pcalloc(ngx_pool_t *pool, size_t size)
 
 
 ngx_pool_cleanup_t *
-ngx_pool_cleanup_add(ngx_pool_t *p, size_t size)
+ngx_pool_cleanup_add(ngx_pool_t *p, size_t size)//申请size大小内存,并注册其ngx_pool_cleanup_t挂载在pool cleanup链表头
 {
     ngx_pool_cleanup_t  *c;
 
