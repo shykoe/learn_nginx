@@ -25,7 +25,7 @@ typedef struct {
 } ngx_keyval_t;
 
 
-typedef struct {
+typedef struct {//28+1+1+1 32bits 8bytes
     unsigned    len:28;
 
     unsigned    valid:1;
@@ -33,18 +33,18 @@ typedef struct {
     unsigned    not_found:1;
     unsigned    escape:1;
 
-    u_char     *data;
+    u_char     *data;//8bytes
 } ngx_variable_value_t;
 
 
-#define ngx_string(str)     { sizeof(str) - 1, (u_char *) str }
-#define ngx_null_string     { 0, NULL }
-#define ngx_str_set(str, text)                                               \
+#define ngx_string(str)     { sizeof(str) - 1, (u_char *) str }//将普通字符串转化为ngx字符串
+#define ngx_null_string     { 0, NULL }//ngx的空字符串
+#define ngx_str_set(str, text)//text为普通字符串                                               \
     (str)->len = sizeof(text) - 1; (str)->data = (u_char *) text
-#define ngx_str_null(str)   (str)->len = 0; (str)->data = NULL
+#define ngx_str_null(str)   (str)->len = 0; (str)->data = NULL//置空
 
 
-#define ngx_tolower(c)      (u_char) ((c >= 'A' && c <= 'Z') ? (c | 0x20) : c)
+#define ngx_tolower(c)      (u_char) ((c >= 'A' && c <= 'Z') ? (c | 0x20) : c)//转换大小写
 #define ngx_toupper(c)      (u_char) ((c >= 'a' && c <= 'z') ? (c & ~0x20) : c)
 
 void ngx_strlow(u_char *dst, u_char *src, size_t n);
@@ -146,7 +146,7 @@ ngx_copy(u_char *dst, u_char *src, size_t len)
 
 u_char *ngx_cpystrn(u_char *dst, u_char *src, size_t n);
 u_char *ngx_pstrdup(ngx_pool_t *pool, ngx_str_t *src);
-u_char * ngx_cdecl ngx_sprintf(u_char *buf, const char *fmt, ...);
+u_char * ngx_cdecl ngx_sprintf(u_char *buf, const char *fmt, ...);//ngx_cdecl表明函数调用方式,可变参数的函数一般用cdecl ,使用下面两个较为安全
 u_char * ngx_cdecl ngx_snprintf(u_char *buf, size_t max, const char *fmt, ...);
 u_char * ngx_cdecl ngx_slprintf(u_char *buf, u_char *last, const char *fmt,
     ...);

@@ -109,7 +109,7 @@ ngx_reset_pool(ngx_pool_t *pool)//重置pool
     }
 
     for (p = pool; p; p = p->d.next) {//将可分配的内存块指针重新指向init时的开头
-        p->d.last = (u_char *) p + sizeof(ngx_pool_t);
+        p->d.last = (u_char *) p + sizeof(ngx_pool_t);//重置时主pool挂载的子pool由于此处统一last指向ngx_pool_t后的位置,会造成少量空间浪费,因为子pool生成时ngx_pool_data_t后其实就是内存分配区
         p->d.failed = 0;
     }
 
