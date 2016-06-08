@@ -14,12 +14,12 @@ ngx_array_create(ngx_pool_t *p, ngx_uint_t n, size_t size)
 {
     ngx_array_t *a;
 
-    a = ngx_palloc(p, sizeof(ngx_array_t));
+    a = ngx_palloc(p, sizeof(ngx_array_t));//从内存池中分配数组头  
     if (a == NULL) {
         return NULL;
     }
 
-    if (ngx_array_init(a, p, n, size) != NGX_OK) {
+    if (ngx_array_init(a, p, n, size) != NGX_OK) {//接着分配n*size大小的区域作为数组数据区  
         return NULL;
     }
 
@@ -28,7 +28,7 @@ ngx_array_create(ngx_pool_t *p, ngx_uint_t n, size_t size)
 
 
 void
-ngx_array_destroy(ngx_array_t *a)
+ngx_array_destroy(ngx_array_t *a)//直接移动内存池的last指针实现销毁
 {
     ngx_pool_t  *p;
 
@@ -45,7 +45,7 @@ ngx_array_destroy(ngx_array_t *a)
 
 
 void *
-ngx_array_push(ngx_array_t *a)
+ngx_array_push(ngx_array_t *a)//返回可以push的位置
 {
     void        *elt, *new;
     size_t       size;
@@ -60,7 +60,7 @@ ngx_array_push(ngx_array_t *a)
         p = a->pool;
 
         if ((u_char *) a->elts + size == p->d.last
-            && p->d.last + a->size <= p->d.end)
+            && p->d.last + a->size <= p->d.end)//这个数组是内存池的最后一个元素,而且内存池内的剩余空间大于数组一个元素的大小
         {
             /*
              * the array allocation is the last in the pool
@@ -73,12 +73,12 @@ ngx_array_push(ngx_array_t *a)
         } else {
             /* allocate a new array */
 
-            new = ngx_palloc(p, 2 * size);
+            new = ngx_palloc(p, 2 * size);//申请一个新的空间,可容纳原来2倍的数据
             if (new == NULL) {
                 return NULL;
             }
 
-            ngx_memcpy(new, a->elts, size);
+            ngx_memcpy(new, a->elts, size);//原来的数据并没有销毁
             a->elts = new;
             a->nalloc *= 2;
         }

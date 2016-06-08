@@ -35,7 +35,7 @@ ngx_list_push(ngx_list_t *l)
 
     last = l->last;
 
-    if (last->nelts == l->nalloc) {
+    if (last->nelts == l->nalloc) {//列表已满
 
         /* the last part is full, allocate a new list part */
 

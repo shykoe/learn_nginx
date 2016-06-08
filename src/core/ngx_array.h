@@ -17,19 +17,19 @@ typedef struct {
     void        *elts;//数组数据区起始位置  
     ngx_uint_t   nelts;//实际存放的元素个数
     size_t       size; //每个元素大小  
-    ngx_uint_t   nalloc; //数组所含空间个数，即实际分配的小空间的个数  
+    ngx_uint_t   nalloc; //数组所含空间个数，即实际分配的小空间的个数,也是申请时能容纳的最大大小  
     ngx_pool_t  *pool; //该数组在此内存池中分配  
 } ngx_array_t;
 
 
-ngx_array_t *ngx_array_create(ngx_pool_t *p, ngx_uint_t n, size_t size);
+ngx_array_t *ngx_array_create(ngx_pool_t *p, ngx_uint_t n, size_t size);//创建数组,个数n
 void ngx_array_destroy(ngx_array_t *a);
 void *ngx_array_push(ngx_array_t *a);
 void *ngx_array_push_n(ngx_array_t *a, ngx_uint_t n);
 
 
 static ngx_inline ngx_int_t
-ngx_array_init(ngx_array_t *array, ngx_pool_t *pool, ngx_uint_t n, size_t size)
+ngx_array_init(ngx_array_t *array, ngx_pool_t *pool, ngx_uint_t n, size_t size)//将数组数据区初始化申请n*size大小的内存空间
 {
     /*
      * set "array->nelts" before "array->elts", otherwise MSVC thinks

@@ -29,7 +29,7 @@ struct ngx_queue_s {
 #define ngx_queue_empty(h)                                                    \
     (h == (h)->prev)
 
-
+//头插
 #define ngx_queue_insert_head(h, x)                                           \
     (x)->next = (h)->next;                                                    \
     (x)->next->prev = x;                                                      \
@@ -99,7 +99,12 @@ struct ngx_queue_s {
     (h)->prev = (n)->prev;                                                    \
     (h)->prev->next = h;
 
-
+/*
+由队列基本结构和以上操作可知，nginx的队列操作只对链表指针进行简单的修改指向操作，
+并不负责节点数据空间的分配。因此，用户在使用nginx队列时，要自己定义数据结构并分配空间，且
+在其中包含一个ngx_queue_t的指针或者对象，当需要获取队列节点数据时，使用ngx_queue_data宏
+#define offsetof(s, m)   (size_t)&(((s *)0)->m) offsetof 为结构体内m的偏移量
+*/
 #define ngx_queue_data(q, type, link)                                         \
     (type *) ((u_char *) q - offsetof(type, link))
 

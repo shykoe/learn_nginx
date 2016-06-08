@@ -13,7 +13,7 @@
  * find the middle queue element if the queue has odd number of elements
  * or the first element of the queue's second part otherwise
  */
-
+//0(n)的时间复杂度,middle,next两个指针 next每次走2步,middle每次走1步,当next为最后一个节点时,middle即为中间节点
 ngx_queue_t *
 ngx_queue_middle(ngx_queue_t *queue)
 {
@@ -46,7 +46,7 @@ ngx_queue_middle(ngx_queue_t *queue)
 
 
 /* the stable insertion sort */
-
+//稳定的插入排序
 void
 ngx_queue_sort(ngx_queue_t *queue,
     ngx_int_t (*cmp)(const ngx_queue_t *, const ngx_queue_t *))
