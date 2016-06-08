@@ -53,15 +53,15 @@ typedef struct {
 
 
 typedef struct {
-    ngx_hash_t       *hash;
-    ngx_hash_key_pt   key;
+    ngx_hash_t       *hash;//该字段如果为NULL，那么调用完初始化函数后，该字段指向新创建出来的hash表。如果该字段不为NULL，那么在初始的时候，所有的数据被插入了这个字段所指的hash表中。
+    ngx_hash_key_pt   key;//指向从字符串生成hash值的hash函数。nginx的源代码中提供了默认的实现函数ngx_hash_key_lc
 
-    ngx_uint_t        max_size; //bucket的最大个数  
-    ngx_uint_t        bucket_size; //每个bucket的空间  
+    ngx_uint_t        max_size; //hash表中的桶的个数。该字段越大，元素存储时冲突的可能性越小，每个桶中存储的元素会更少，则查询起来的速度更快。  
+    ngx_uint_t        bucket_size; //每个桶的最大限制大小，单位是字节  
 
     char             *name;//该hash结构的名字(仅在错误日志中使用)  
     ngx_pool_t       *pool; //该hash结构从pool指向的内存池中分配  
-    ngx_pool_t       *temp_pool; //分配临时数据空间的内存池  
+    ngx_pool_t       *temp_pool; //该hash表使用的临时pool，在初始化完成以后，该pool可以被释放和销毁掉。
 } ngx_hash_init_t;
 
 
