@@ -12,18 +12,21 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
+/*
+nginx hash表为开链法
+
+*/
+typedef struct {
+    void             *value;//value，即某个key对应的值，即<key,value>中的value  
+    u_short           len;//name长度 
+    u_char            name[1];//某个要hash的数据(在nginx中表现为字符串)，即<key,value>中的key
+} ngx_hash_elt_t;//hash元素结构  
+
 
 typedef struct {
-    void             *value;
-    u_short           len;
-    u_char            name[1];
-} ngx_hash_elt_t;
-
-
-typedef struct {
-    ngx_hash_elt_t  **buckets;
-    ngx_uint_t        size;
-} ngx_hash_t;
+    ngx_hash_elt_t  **buckets;//hash桶(有size个桶)  
+    ngx_uint_t        size;  //hash桶个数  
+} ngx_hash_t;//hash结构  
 
 
 typedef struct {
@@ -53,12 +56,12 @@ typedef struct {
     ngx_hash_t       *hash;
     ngx_hash_key_pt   key;
 
-    ngx_uint_t        max_size;
-    ngx_uint_t        bucket_size;
+    ngx_uint_t        max_size; //bucket的最大个数  
+    ngx_uint_t        bucket_size; //每个bucket的空间  
 
-    char             *name;
-    ngx_pool_t       *pool;
-    ngx_pool_t       *temp_pool;
+    char             *name;//该hash结构的名字(仅在错误日志中使用)  
+    ngx_pool_t       *pool; //该hash结构从pool指向的内存池中分配  
+    ngx_pool_t       *temp_pool; //分配临时数据空间的内存池  
 } ngx_hash_init_t;
 
 

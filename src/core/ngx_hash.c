@@ -8,30 +8,30 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
-
+//寻找KEY 为key的buckets返回value,key的长度为len
 void *
 ngx_hash_find(ngx_hash_t *hash, ngx_uint_t key, u_char *name, size_t len)
 {
     ngx_uint_t       i;
-    ngx_hash_elt_t  *elt;
+    ngx_hash_elt_t  *elt;//hash元素
 
 #if 0
     ngx_log_error(NGX_LOG_ALERT, ngx_cycle->log, 0, "hf:\"%*s\"", len, name);
 #endif
 
-    elt = hash->buckets[key % hash->size];
+    elt = hash->buckets[key % hash->size];//elt为散列的链表头
 
     if (elt == NULL) {
         return NULL;
     }
 
     while (elt->value) {
-        if (len != (size_t) elt->len) {
+        if (len != (size_t) elt->len) {//长度不相同
             goto next;
         }
 
         for (i = 0; i < len; i++) {
-            if (name[i] != elt->name[i]) {
+            if (name[i] != elt->name[i]) {//key的name不同
                 goto next;
             }
         }
@@ -39,7 +39,7 @@ ngx_hash_find(ngx_hash_t *hash, ngx_uint_t key, u_char *name, size_t len)
         return elt->value;
 
     next:
-
+//链表上 下一个bucket的位置(对齐的)
         elt = (ngx_hash_elt_t *) ngx_align_ptr(&elt->name[0] + elt->len,
                                                sizeof(void *));
         continue;
