@@ -12,10 +12,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 
-/*
-nginx hash表为开链法
 
-*/
 typedef struct {
     void             *value;//value，即某个key对应的值，即<key,value>中的value  
     u_short           len;//name长度 

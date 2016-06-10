@@ -419,7 +419,7 @@ found:
 
         test[key] = (u_short) (test[key] + NGX_HASH_ELT_SIZE(&names[n]));
     }
-    //values置空
+    // 设置每个桶的结束元素为NULL
     for (i = 0; i < size; i++) {
         if (buckets[i] == NULL) {
             continue;
@@ -532,7 +532,7 @@ ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names,
         }
 
         next_names.nelts = 0;
-
+        //最后一个字符不是.
         if (names[n].key.len != len) {
             next_name = ngx_array_push(&next_names);
             if (next_name == NULL) {
@@ -554,7 +554,7 @@ ngx_hash_wildcard_init(ngx_hash_init_t *hinit, ngx_hash_key_t *names,
             if (ngx_strncmp(names[n].key.data, names[i].key.data, len) != 0) {
                 break;
             }
-
+            //.号前不相同,不带
             if (!dot
                 && names[i].key.len > len
                 && names[i].key.data[len] != '.')
@@ -740,13 +740,13 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
         n = 0;
 
         for (i = 0; i < key->len; i++) {
-
+            //多于一个的*
             if (key->data[i] == '*') {
                 if (++n > 1) {
                     return NGX_DECLINED;
                 }
             }
-
+            //两个.
             if (key->data[i] == '.' && key->data[i + 1] == '.') {
                 return NGX_DECLINED;
             }
