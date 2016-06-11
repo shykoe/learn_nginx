@@ -731,7 +731,7 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
     last = key->len;
 
     if (flags & NGX_HASH_WILDCARD_KEY) {
-
+    	//包含通配符
         /*
          * supported wildcards:
          *     "*.example.com", ".example.com", and "www.example.*"
@@ -781,11 +781,11 @@ ngx_hash_add_key(ngx_hash_keys_arrays_t *ha, ngx_str_t *key, void *value,
     }
 
     /* exact hash */
-
+    //没有通配符的
     k = 0;
 
     for (i = 0; i < last; i++) {
-        if (!(flags & NGX_HASH_READONLY_KEY)) {
+        if (!(flags & NGX_HASH_READONLY_KEY)) {//不是只读的 将其全部转换为小写
             key->data[i] = ngx_tolower(key->data[i]);
         }
         k = ngx_hash(k, key->data[i]);
@@ -883,7 +883,7 @@ wildcard:
             return NGX_ERROR;
         }
 
-        ngx_memcpy(name->data, &key->data[1], name->len);
+        ngx_memcpy(name->data, &key->data[1], name->len);//.baidu.com 复制进去baidu.com
     }
 
 
