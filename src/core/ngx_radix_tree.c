@@ -465,14 +465,14 @@ ngx_radix_alloc(ngx_radix_tree_t *tree)
 {
     ngx_radix_node_t  *p;
 
-    if (tree->free) {
+    if (tree->free) {//有空节点
         p = tree->free;
         tree->free = tree->free->right;
         return p;
     }
 
-    if (tree->size < sizeof(ngx_radix_node_t)) {
-        tree->start = ngx_pmemalign(tree->pool, ngx_pagesize, ngx_pagesize);
+    if (tree->size < sizeof(ngx_radix_node_t)) {//没有剩余节点,radix为空
+        tree->start = ngx_pmemalign(tree->pool, ngx_pagesize, ngx_pagesize);//申请larger对齐的内存
         if (tree->start == NULL) {
             return NULL;
         }

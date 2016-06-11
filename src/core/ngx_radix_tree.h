@@ -28,7 +28,7 @@ struct ngx_radix_node_s {
 typedef struct {
     ngx_radix_node_t  *root;
     ngx_pool_t        *pool;
-    ngx_radix_node_t  *free;
+    ngx_radix_node_t  *free;//删除的节点并不free,只是放在了free链表里
     char              *start;
     size_t             size;
 } ngx_radix_tree_t;
