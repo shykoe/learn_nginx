@@ -83,9 +83,9 @@ ngx_radix_tree_create(ngx_pool_t *pool, ngx_int_t preallocate)
 
     while (preallocate--) {
 
-        key = 0;
+        key = 0;//用key来选择插入左子树还是右子树
         mask >>= 1;
-        mask |= 0x80000000;
+        mask |= 0x80000000;//mask来表示层数
 
         do {
             if (ngx_radix32tree_insert(tree, key, mask, NGX_RADIX_NO_VALUE)
