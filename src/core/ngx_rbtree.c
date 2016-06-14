@@ -31,7 +31,7 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
     root = (ngx_rbtree_node_t **) &tree->root;
     sentinel = tree->sentinel;
 
-    if (*root == sentinel) {
+    if (*root == sentinel) {//root为nil节点,则添加新的节点,root指向新的节点
         node->parent = NULL;
         node->left = sentinel;
         node->right = sentinel;
@@ -45,10 +45,14 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
 
     /* re-balance tree */
 
-    while (node != *root && ngx_rbt_is_red(node->parent)) {
+    while (node != *root && ngx_rbt_is_red(node->parent)) {//node不是根节点而且node父节点是红色
 
-        if (node->parent == node->parent->parent->left) {
-            temp = node->parent->parent->right;
+        if (node->parent == node->parent->parent->left) {//node的父节点是左子树
+            temp = node->parent->parent->right;//temp为node的叔父节点
+            /*
+                node的父节点是左子树,且node的父节点和叔父节点都为红色
+                则将node的父节点和叔父节点置黑.node的祖父节点置红
+            */
 
             if (ngx_rbt_is_red(temp)) {
                 ngx_rbt_black(node->parent);
@@ -56,7 +60,16 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
                 ngx_rbt_red(node->parent->parent);
                 node = node->parent->parent;
 
-            } else {
+            }
+            /*
+                node的父节点是红色而其叔父节点是黑色
+                如果node是其父节点的右子树则左旋一次,再右旋一次调整
+                如果node是其父节点的左子树则右旋一次
+            
+
+            */
+
+             else {
                 if (node == node->parent->right) {
                     node = node->parent;
                     ngx_rbtree_left_rotate(root, sentinel, node);
@@ -68,6 +81,16 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
             }
 
         } else {
+            /*
+            如果node的父节点是右子树且为红色 node的叔父节点是红色 
+            则将node的父节点和叔父节点置黑.node的祖父节点置红
+            
+            如果node的父节点是右子树且为红色,node的叔父节点是黑色
+            如node为左子树则先右旋然后左旋
+            如node为右子树则左旋
+            */
+
+
             temp = node->parent->parent->left;
 
             if (ngx_rbt_is_red(temp)) {
@@ -319,7 +342,7 @@ ngx_rbtree_delete(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
     ngx_rbt_black(temp);
 }
 
-
+//左旋
 static ngx_inline void
 ngx_rbtree_left_rotate(ngx_rbtree_node_t **root, ngx_rbtree_node_t *sentinel,
     ngx_rbtree_node_t *node)
@@ -349,7 +372,7 @@ ngx_rbtree_left_rotate(ngx_rbtree_node_t **root, ngx_rbtree_node_t *sentinel,
     node->parent = temp;
 }
 
-
+//右旋
 static ngx_inline void
 ngx_rbtree_right_rotate(ngx_rbtree_node_t **root, ngx_rbtree_node_t *sentinel,
     ngx_rbtree_node_t *node)
