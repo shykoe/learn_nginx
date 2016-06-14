@@ -194,7 +194,7 @@ ngx_radix32tree_delete(ngx_radix_tree_t *tree, uint32_t key, uint32_t mask)
         return NGX_ERROR;
     }
 
-    if (node->right || node->left) {
+    if (node->right || node->left) {//找到了，并且不为叶子节点直接将value置NGX_RADIX_NO_VALUE
         if (node->value != NGX_RADIX_NO_VALUE) {
             node->value = NGX_RADIX_NO_VALUE;
             return NGX_OK;
@@ -203,7 +203,7 @@ ngx_radix32tree_delete(ngx_radix_tree_t *tree, uint32_t key, uint32_t mask)
         return NGX_ERROR;
     }
 
-    for ( ;; ) {
+    for ( ;; ) {//node为叶子节点
         if (node->parent->right == node) {
             node->parent->right = NULL;
 
@@ -212,7 +212,7 @@ ngx_radix32tree_delete(ngx_radix_tree_t *tree, uint32_t key, uint32_t mask)
         }
 
         node->right = tree->free;
-        tree->free = node;
+        tree->free = node;//添加到free链表
 
         node = node->parent;
 
@@ -245,7 +245,7 @@ ngx_radix32tree_find(ngx_radix_tree_t *tree, uint32_t key)
     node = tree->root;
 
     while (node) {
-        if (node->value != NGX_RADIX_NO_VALUE) {
+        if (node->value != NGX_RADIX_NO_VALUE) {//value不为空
             value = node->value;
         }
 
