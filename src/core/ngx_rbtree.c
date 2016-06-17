@@ -271,7 +271,7 @@ ngx_rbtree_delete(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
     node->parent = NULL;
     node->key = 0;
 
-    if (red) {
+    if (red) {//红色直接删除成功
         return;
     }
 
