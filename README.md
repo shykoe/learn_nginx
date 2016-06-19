@@ -9,7 +9,7 @@
 > * [ngx_hash](#ngx_hash)
 > * [ngx_radix_tree](#ngx_radix_tree)
 > * [ngx_rbtree](#ngx_rbtree)
-***
+
 ngx_string
 ----------
 ```c
