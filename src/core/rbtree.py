@@ -83,7 +83,38 @@ class rbtree(object):
 			subst.parent.lchild = temp
 		else:
 			subst.parent.rchild = temp
-		if 
+		if subst == node:
+			temp.parent = subst.parent
+		else:
+			if subst.parent == node:
+				temp.parent = subst
+			else:
+				temp.parent = subst.parent
+			subst.rchild = node.rchild
+			subst.lchild = node.lchild
+			subst.parent = node.parent
+			subst.color = node.color
+			if node == self.root:
+				self.root = subst
+			else:
+				if node == node.parent.lchild:
+					node.parent.lchild = subst
+				else:
+					node.parent.rchild = subst
+			if node.lchild != self.sentinel:
+				subst.lchild = node.lchild
+			if node.rchild != self.sentinel:
+				subst.rchild = node.lchild
+		if red:
+			return
+		###balance rbtree
+		
+
+
+
+
+
+
 def tree_min(node, sentinel):
 	while(node.lchild != sentinel):
 		node = node.lchild
