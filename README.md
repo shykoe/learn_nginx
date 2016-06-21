@@ -314,3 +314,339 @@ ngx_list_init(ngx_list_t *list, ngx_pool_t *pool, ngx_uint_t n, size_t size)
 
 ngx_hash
 --------
+
+
+ngx_rbtree
+----------
+首先红黑树的性质
+> * 1 节点是红色或黑色。
+> * 2 根节点是黑色。
+> * 3 每个叶节点（NIL节点，空节点）是黑色的。
+> * 4 每个红色节点的两个子节点都是黑色。(从每个叶子到根的所有路径上不能有两个连续的红色节点)
+> * 5 从任一节点到其每个叶子的所有路径都包含相同数目的黑色节点。
+
+难点为红黑树的插入和删除
+
+
+ 1. 红黑树的插入
+因为一般情况下黑色节点的个数是远大于红色节点的数量,所以红黑树默认插入的节点颜色为红色,避免插入需要大概率调整红黑树.
+分为以下几种情况.
+ (1) 起始为空树.
+>此时直接将根指向新节点,并将节点变黑.
+ 
+ (2)新节点的父节点颜色为黑
+>直接插入没有影响.
+
+ (3)新节点的父节点颜色为红
+ > 1. 父节点与叔父节点均为红色.
+ >  此时把父节点和叔父节点的颜色置黑,祖父节点颜色置红.此时祖父节点颜色改变要递归向上
+ ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_insert1.jpg)
+ > 2. 父节点为红色,叔父节点为黑色,且新节点为其父节点的左子树.
+ >将新节点的父节点置黑,祖父节点置红,然后以祖父节点右旋.
+  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_insert2.jpg)
+ > 3. 父节点为红色,叔父节点为黑色,且新节点为父节点的右子树.
+ 以新节点的父节点左旋,则变为2.的情况
+  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_insert3.jpg)
+  
+  当n的父节点为右孩子节点,有对称的3种情况.
+  由于1.是递归向上的最后把根节点置黑.
+  ```c
+  void
+ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
+{
+    ngx_rbtree_node_t  **root, *temp, *sentinel;
+
+    /* a binary tree insert */
+
+    root = (ngx_rbtree_node_t **) &tree->root;
+    sentinel = tree->sentinel;
+
+    if (*root == sentinel) {//root为nil节点,则添加新的节点,root指向新的节点
+        node->parent = NULL;
+        node->left = sentinel;
+        node->right = sentinel;
+        ngx_rbt_black(node);
+        *root = node;
+
+        return;
+    }
+
+    tree->insert(*root, node, sentinel);
+
+    /* re-balance tree */
+
+    while (node != *root && ngx_rbt_is_red(node->parent)) {//node不是根节点而且node父节点是红色
+
+        if (node->parent == node->parent->parent->left) {//node的父节点是左子树
+            temp = node->parent->parent->right;//temp为node的叔父节点
+            /*
+                node的父节点是左子树,且node的父节点和叔父节点都为红色
+                则将node的父节点和叔父节点置黑.node的祖父节点置红
+            */
+
+            if (ngx_rbt_is_red(temp)) {
+                ngx_rbt_black(node->parent);
+                ngx_rbt_black(temp);
+                ngx_rbt_red(node->parent->parent);
+                node = node->parent->parent;
+
+            }
+            /*
+                node的父节点是红色而其叔父节点是黑色
+                如果node是其父节点的右子树则左旋一次,再右旋一次调整
+                如果node是其父节点的左子树则右旋一次
+            
+
+            */
+
+             else {
+                if (node == node->parent->right) {
+                    node = node->parent;
+                    ngx_rbtree_left_rotate(root, sentinel, node);
+                }
+
+                ngx_rbt_black(node->parent);
+                ngx_rbt_red(node->parent->parent);
+                ngx_rbtree_right_rotate(root, sentinel, node->parent->parent);
+            }
+
+        } else {
+            /*
+            如果node的父节点是右子树且为红色 node的叔父节点是红色 
+            则将node的父节点和叔父节点置黑.node的祖父节点置红
+            
+            如果node的父节点是右子树且为红色,node的叔父节点是黑色
+            如node为左子树则先右旋然后左旋
+            如node为右子树则左旋
+            */
+
+
+            temp = node->parent->parent->left;
+
+            if (ngx_rbt_is_red(temp)) {
+                ngx_rbt_black(node->parent);
+                ngx_rbt_black(temp);
+                ngx_rbt_red(node->parent->parent);
+                node = node->parent->parent;
+
+            } else {
+                if (node == node->parent->left) {
+                    node = node->parent;
+                    ngx_rbtree_right_rotate(root, sentinel, node);
+                }
+
+                ngx_rbt_black(node->parent);
+                ngx_rbt_red(node->parent->parent);
+                ngx_rbtree_left_rotate(root, sentinel, node->parent->parent);
+            }
+        }
+    }
+
+    ngx_rbt_black(*root);
+}
+ ```
+ 2. 红黑树的删除
+ 红黑树的删除符合基本的二叉查找树的删除规则.有待删除结点s,实际删除节点t和删除后占有实际删除节点t位置的节点m.
+> 1. 待删除结点s没有子结点，即它是一个叶子结点(非NIL)，此时直接删除,s=t,m=NIL。
+> 2. 待删除结点s只有一个子结点，则可以直接删除；如果待删除结点s是根结点，则它的子结点变为根结点；如果待删除结点s不是根结点，则用它的子结点替代它的位置,s=t,m为s(或t)的子节点。
+> 3. 待删除结点s有两个子结点，首先找出该结点的后继结点t（即右子树中数值最小的那个结点），然后将两个结点进行交换,并将待删除结点s删除，由于后继结点位置不可能有左子结点，对调后的待删除结点也不会有左子结点，因此要把它删除的操作会落入上面两种情况中。
+ 
+ 红黑树的删除主要影响性质4,5,此时分为以下几种情况.
+ > 1. 实际删除的节点t颜色为红色.
+ > 直接删除,因为红色节点的删除不会影响到红黑树的性质.删除结束.
+ > 2. 实际删除的节点t颜色为黑色,
+ > > 1. m为红色节点
+ > >由二叉查找树的删除知,原t位置最多只有右侧子树,此时以m为根的子树黑高减一(性质5破坏),若原t节点位置的父节点为红色,则性质4也破坏.此时将m颜色置黑.则性质4,5都恢复,删除完成.
+ > > 2. m为黑色节点
+ > > 此时性质5破坏,为了满足红黑树的性质,把m节点颜色假设为双黑.向上递归的消除.
+![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete.jpg)
+ > > 2.1  m的兄弟节点p为黑,且p的左右孩子节点均为黑色
+ > >  使p置红,m的双黑色向m的父节点转移.递归向上.
+ > > 2.2  m的兄弟节点p为黑色,且p的左孩子为黑右孩子为红.
+ > > ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete2.jpg)
+ > > I的颜色为0,1(红或者黑),此时以I左旋,p变为m的祖父节点,且p为黑色,m双黑色消除,但是p的右孩子黑高由原来的[1,2](I的颜色0 OR 1)变为1,此时只要把I与P的颜色交换并将p的孩子节点颜色置黑,还原黑高.调节完成.
+ > > 2.3 m的兄弟节点p为黑色,p的左右孩子都为红色.
+ > > 由2.2注意到即使p的左孩子为红,红黑树的性质也都满足,故也可以使用2.2调整.
+ > > 2.4 m的兄弟节点p为黑色,p的左孩子为红,右孩子为黑.
+ > > 以p节点右旋 交换p与p左孩子的颜色,此时情况转换成2.2
+ > > ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete3.jpg)
+ > > 2.5 m的兄弟节点p为红色节点
+ > > 以I节点左旋,因p为红色,I必为黑色,P变为I的父节点,旋转后的P节点的父节点可能颜色为红,故交换I与P的颜色,此时m的兄弟节点必为黑色(是原P节点的左孩子)情况转换为上面的2.2,2.3或者2.4
+ > > ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete4.jpg)
+
+同样当m为其双亲节点的右孩子的时候也有对称的上述几种情况.
+```c
+void
+ngx_rbtree_delete(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
+{
+    ngx_uint_t           red;
+    ngx_rbtree_node_t  **root, *sentinel, *subst, *temp, *w;
+
+    /* a binary tree delete */
+
+    root = (ngx_rbtree_node_t **) &tree->root;
+    sentinel = tree->sentinel;
+
+    if (node->left == sentinel) {
+        temp = node->right;
+        subst = node;
+
+    } else if (node->right == sentinel) {
+        temp = node->left;
+        subst = node;
+
+    } else {
+        subst = ngx_rbtree_min(node->right, sentinel);
+
+        if (subst->left != sentinel) {
+            temp = subst->left;
+        } else {
+            temp = subst->right;
+        }
+    }
+
+    if (subst == *root) {
+        *root = temp;
+        ngx_rbt_black(temp);
+
+        /* DEBUG stuff */
+        node->left = NULL;
+        node->right = NULL;
+        node->parent = NULL;
+        node->key = 0;
+
+        return;
+    }
+
+    red = ngx_rbt_is_red(subst);
+
+    if (subst == subst->parent->left) {
+        subst->parent->left = temp;
+
+    } else {
+        subst->parent->right = temp;
+    }
+
+    if (subst == node) {
+
+        temp->parent = subst->parent;
+
+    } else {
+
+        if (subst->parent == node) {
+            temp->parent = subst;
+
+        } else {
+            temp->parent = subst->parent;
+        }
+
+        subst->left = node->left;
+        subst->right = node->right;
+        subst->parent = node->parent;
+        ngx_rbt_copy_color(subst, node);
+
+        if (node == *root) {
+            *root = subst;
+
+        } else {
+            if (node == node->parent->left) {
+                node->parent->left = subst;
+            } else {
+                node->parent->right = subst;
+            }
+        }
+
+        if (subst->left != sentinel) {
+            subst->left->parent = subst;
+        }
+
+        if (subst->right != sentinel) {
+            subst->right->parent = subst;
+        }
+    }
+
+    /* DEBUG stuff */
+    node->left = NULL;
+    node->right = NULL;
+    node->parent = NULL;
+    node->key = 0;
+
+    if (red) {//红色直接删除成功
+        return;
+    }
+
+    /* a delete fixup */
+
+    while (temp != *root && ngx_rbt_is_black(temp)) {
+
+        if (temp == temp->parent->left) {//temp为双黑色
+            w = temp->parent->right;//w为temp的兄弟节点
+
+            if (ngx_rbt_is_red(w)) {//w为红色
+                ngx_rbt_black(w);
+                ngx_rbt_red(temp->parent);
+                ngx_rbtree_left_rotate(root, sentinel, temp->parent);
+                w = temp->parent->right;
+            }
+
+            if (ngx_rbt_is_black(w->left) && ngx_rbt_is_black(w->right)) {
+                ngx_rbt_red(w);
+                temp = temp->parent;
+
+            } else {
+                if (ngx_rbt_is_black(w->right)) {
+                    ngx_rbt_black(w->left);
+                    ngx_rbt_red(w);
+                    ngx_rbtree_right_rotate(root, sentinel, w);
+                    w = temp->parent->right;
+                }
+
+                ngx_rbt_copy_color(w, temp->parent);
+                ngx_rbt_black(temp->parent);
+                ngx_rbt_black(w->right);
+                ngx_rbtree_left_rotate(root, sentinel, temp->parent);
+                temp = *root;
+            }
+
+        } else {
+            w = temp->parent->left;
+
+            if (ngx_rbt_is_red(w)) {
+                ngx_rbt_black(w);
+                ngx_rbt_red(temp->parent);
+                ngx_rbtree_right_rotate(root, sentinel, temp->parent);
+                w = temp->parent->left;
+            }
+
+            if (ngx_rbt_is_black(w->left) && ngx_rbt_is_black(w->right)) {
+                ngx_rbt_red(w);
+                temp = temp->parent;
+
+            } else {
+                if (ngx_rbt_is_black(w->left)) {
+                    ngx_rbt_black(w->right);
+                    ngx_rbt_red(w);
+                    ngx_rbtree_left_rotate(root, sentinel, w);
+                    w = temp->parent->left;
+                }
+
+                ngx_rbt_copy_color(w, temp->parent);
+                ngx_rbt_black(temp->parent);
+                ngx_rbt_black(w->left);
+                ngx_rbtree_right_rotate(root, sentinel, temp->parent);
+                temp = *root;
+            }
+        }
+    }
+
+    ngx_rbt_black(temp);
+}
+```
+
+
+
+
+
+
+
+ 
