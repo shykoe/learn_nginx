@@ -331,6 +331,7 @@ ngx_rbtree
  1. 红黑树的插入
 因为一般情况下黑色节点的个数是远大于红色节点的数量,所以红黑树默认插入的节点颜色为红色,避免插入需要大概率调整红黑树.
 分为以下几种情况.
+
  (1) 起始为空树.
 >此时直接将根指向新节点,并将节点变黑.
  
@@ -338,18 +339,19 @@ ngx_rbtree
 >直接插入没有影响.
 
  (3)新节点的父节点颜色为红
- > 1. 父节点与叔父节点均为红色.
- >  此时把父节点和叔父节点的颜色置黑,祖父节点颜色置红.此时祖父节点颜色改变要递归向上
- ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_insert1.jpg)
- > 2. 父节点为红色,叔父节点为黑色,且新节点为其父节点的左子树.
- >将新节点的父节点置黑,祖父节点置红,然后以祖父节点右旋.
-  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_insert2.jpg)
- > 3. 父节点为红色,叔父节点为黑色,且新节点为父节点的右子树.
- 以新节点的父节点左旋,则变为2.的情况
-  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_insert3.jpg)
+  1. 父节点与叔父节点均为红色.
+  此时把父节点和叔父节点的颜色置黑,祖父节点颜色置红.此时祖父节点颜色改变要递归向上
+  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_insert1.jpg)  
+  2. 父节点为红色,叔父节点为黑色,且新节点为其父节点的左子树.  
+  将新节点的父节点置黑,祖父节点置红,然后以祖父节点右旋.
+  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_insert2.jpg)  
+  3. 父节点为红色,叔父节点为黑色,且新节点为父节点的右子树.  
+  以新节点的父节点左旋,则变为2.的情况
+  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_insert3.jpg)  
   
-  当n的父节点为右孩子节点,有对称的3种情况.
-  由于1.是递归向上的最后把根节点置黑.
+  
+  当n的父节点为右孩子节点,有对称的3种情况.  
+  由于1.是递归向上的最后把根节点置黑.  
   ```c
   void
 ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
