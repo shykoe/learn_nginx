@@ -105,10 +105,41 @@ class rbtree(object):
 				subst.lchild = node.lchild
 			if node.rchild != self.sentinel:
 				subst.rchild = node.lchild
+		node.lchild = None
+		node.rchild = None
+		node.parent = None
+		node.data = 0
 		if red:
 			return
-		###balance rbtree
-		
+		"""
+		balance rbtree
+		"""
+		while(temp != self.root and is_black(temp)):
+			if temp = temp.parent.lchild:
+				p = temp.parent.rchild
+				if is_red(p):
+					rbtree_left_rotate(self,temp.parent)
+					black(p)
+					red(temp.parent)
+					p = temp.parent.rchild
+				if is_black(p.lchild) and is_black(p.rchild):
+					red(p)
+					temp = temp.parent
+				else:
+					if is_black(p.rchild):
+						black(p.lchild)
+						rbtree_right_rotate(p)
+						red(p)
+						p = temp.parent.rchild
+					rbtree_left_rotate(self,temp.parent)
+					p.color = temp.parent.color
+					black(temp.parent)
+					black(p.rchild)
+					temp = self.root
+			else:
+				p = temp.parent.lchild
+				if is_red
+
 
 
 

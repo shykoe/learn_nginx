@@ -470,7 +470,7 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
  >  2.3 m的兄弟节点p为黑色,p的左右孩子都为红色.  
  >  由2.2注意到即使p的左孩子为红,红黑树的性质也都满足,故也可以使用2.2调整.  
  >  2.4 m的兄弟节点p为黑色,p的左孩子为红,右孩子为黑.  
- >  以p节点右旋 交换p与p左孩子的颜色,此时情况转换成b.2  
+ >  以p节点右旋 交换p与p左孩子的颜色,此时情况转换成2.2  
  >  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete3.jpg)
  >  2.5 m的兄弟节点p为红色节点  
  >  以I节点左旋,因p为红色,I必为黑色,P变为I的父节点,旋转后的P节点的父节点可能颜色为红,故交换I与P的颜色,此时m的兄弟节点必为黑色(是原P节点的左孩子)情况转换为上面的2.2,2.3或者2.4  
