@@ -455,24 +455,24 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
  > 1. 实际删除的节点t颜色为红色.
  > 直接删除,因为红色节点的删除不会影响到红黑树的性质.删除结束.
  > 2. 实际删除的节点t颜色为黑色,
- > > 1. m为红色节点
- > >由二叉查找树的删除知,原t位置最多只有右侧子树,此时以m为根的子树黑高减一(性质5破坏),若原t节点位置的父节点为红色,则性质4也破坏.此时将m颜色置黑.则性质4,5都恢复,删除完成.
- > > 2. m为黑色节点
- > > 此时性质5破坏,为了满足红黑树的性质,把m节点颜色假设为双黑.向上递归的消除.
+ >  1. m为红色节点
+ > 由二叉查找树的删除知,原t位置最多只有右侧子树,此时以m为根的子树黑高减一(性质5破坏),若原t节点位置的父节点为红色,则性质4也破坏.此时将m颜色置黑.则性质4,5都恢复,删除完成.
+ >  2. m为黑色节点
+ >  此时性质5破坏,为了满足红黑树的性质,把m节点颜色假设为双黑.向上递归的消除.
 ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete.jpg)
- > > 2.1  m的兄弟节点p为黑,且p的左右孩子节点均为黑色
- > >  使p置红,m的双黑色向m的父节点转移.递归向上.
- > > 2.2  m的兄弟节点p为黑色,且p的左孩子为黑右孩子为红.
- > > ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete2.jpg)
- > > I的颜色为0,1(红或者黑),此时以I左旋,p变为m的祖父节点,且p为黑色,m双黑色消除,但是p的右孩子黑高由原来的[1,2](I的颜色0 OR 1)变为1,此时只要把I与P的颜色交换并将p的孩子节点颜色置黑,还原黑高.调节完成.
- > > 2.3 m的兄弟节点p为黑色,p的左右孩子都为红色.
- > > 由2.2注意到即使p的左孩子为红,红黑树的性质也都满足,故也可以使用2.2调整.
- > > 2.4 m的兄弟节点p为黑色,p的左孩子为红,右孩子为黑.
- > > 以p节点右旋 交换p与p左孩子的颜色,此时情况转换成2.2
- > > ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete3.jpg)
- > > 2.5 m的兄弟节点p为红色节点
- > > 以I节点左旋,因p为红色,I必为黑色,P变为I的父节点,旋转后的P节点的父节点可能颜色为红,故交换I与P的颜色,此时m的兄弟节点必为黑色(是原P节点的左孩子)情况转换为上面的2.2,2.3或者2.4
- > > ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete4.jpg)
+ >  2.1  m的兄弟节点p为黑,且p的左右孩子节点均为黑色
+ >   使p置红,m的双黑色向m的父节点转移.递归向上.
+ >  2.2  m的兄弟节点p为黑色,且p的左孩子为黑右孩子为红.
+ >  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete2.jpg)
+ >  I的颜色为0,1(红或者黑),此时以I左旋,p变为m的祖父节点,且p为黑色,m双黑色消除,但是p的右孩子黑高由原来的[1,2](I的颜色0 OR 1)变为1,此时只要把I与P的颜色交换并将p的孩子节点颜色置黑,还原黑高.调节完成.
+ >  2.3 m的兄弟节点p为黑色,p的左右孩子都为红色.
+ >  由2.2注意到即使p的左孩子为红,红黑树的性质也都满足,故也可以使用2.2调整.
+ >  2.4 m的兄弟节点p为黑色,p的左孩子为红,右孩子为黑.
+ >  以p节点右旋 交换p与p左孩子的颜色,此时情况转换成2.2
+ >  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete3.jpg)
+ >  2.5 m的兄弟节点p为红色节点
+ >  以I节点左旋,因p为红色,I必为黑色,P变为I的父节点,旋转后的P节点的父节点可能颜色为红,故交换I与P的颜色,此时m的兄弟节点必为黑色(是原P节点的左孩子)情况转换为上面的2.2,2.3或者2.4
+ >  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete4.jpg)
 
 同样当m为其双亲节点的右孩子的时候也有对称的上述几种情况.
 ```c
