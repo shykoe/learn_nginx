@@ -467,13 +467,13 @@ ngx_rbtree_insert(ngx_rbtree_t *tree, ngx_rbtree_node_t *node)
  >  2.2  m的兄弟节点p为黑色,且p的左孩子为黑右孩子为红.  
  >  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete2.jpg)
  >    I的颜色为0,1(红或者黑),此时以I左旋,p变为m的祖父节点,且p为黑色,m双黑色消除,但是p的右孩子黑高由原来的[1,2](I的颜色0 OR 1)变为1,此时只要把I与P的颜色交换并将p的孩子节点颜色置黑,还原黑高.调节完成.  
- >  b.3 m的兄弟节点p为黑色,p的左右孩子都为红色.  
+ >  2.3 m的兄弟节点p为黑色,p的左右孩子都为红色.  
  >  由2.2注意到即使p的左孩子为红,红黑树的性质也都满足,故也可以使用2.2调整.  
- >  b.4 m的兄弟节点p为黑色,p的左孩子为红,右孩子为黑.  
+ >  2.4 m的兄弟节点p为黑色,p的左孩子为红,右孩子为黑.  
  >  以p节点右旋 交换p与p左孩子的颜色,此时情况转换成b.2  
  >  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete3.jpg)
- >  b.5 m的兄弟节点p为红色节点  
- >  以I节点左旋,因p为红色,I必为黑色,P变为I的父节点,旋转后的P节点的父节点可能颜色为红,故交换I与P的颜色,此时m的兄弟节点必为黑色(是原P节点的左孩子)情况转换为上面的b.2,b.3或者b.4  
+ >  2.5 m的兄弟节点p为红色节点  
+ >  以I节点左旋,因p为红色,I必为黑色,P变为I的父节点,旋转后的P节点的父节点可能颜色为红,故交换I与P的颜色,此时m的兄弟节点必为黑色(是原P节点的左孩子)情况转换为上面的2.2,2.3或者2.4  
  >  ![](https://raw.githubusercontent.com/shykoe/reading_nginx/master/images/rbtree_delete4.jpg)
 
 同样当m为其双亲节点的右孩子的时候也有对称的上述几种情况.
