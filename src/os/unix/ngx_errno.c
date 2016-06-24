@@ -43,7 +43,7 @@ ngx_strerror(ngx_err_t err, u_char *errstr, size_t size)
 
 
 ngx_int_t
-ngx_strerror_init(void)
+ngx_strerror_init(void)//调用ngx_strerror_init函数完成对错误码和错误信息的初始化
 {
     char       *msg;
     u_char     *p;
@@ -55,7 +55,7 @@ ngx_strerror_init(void)
      * malloc() is used and possible errors are logged using strerror().
      */
 
-    len = NGX_SYS_NERR * sizeof(ngx_str_t);
+    len = NGX_SYS_NERR * sizeof(ngx_str_t);//NGX_SYS_NERR由自动化脚本auto/unix生成的
 
     ngx_sys_errlist = malloc(len);
     if (ngx_sys_errlist == NULL) {
