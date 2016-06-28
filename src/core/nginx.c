@@ -199,7 +199,7 @@ main(int argc, char *const *argv)
         return 1;
     }
 
-    if (ngx_get_options(argc, argv) != NGX_OK) {
+    if (ngx_get_options(argc, argv) != NGX_OK) {//读取指令
         return 1;
     }
 
