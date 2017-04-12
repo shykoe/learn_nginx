@@ -194,12 +194,12 @@ main(int argc, char *const *argv)
     ngx_core_conf_t  *ccf;
 
     ngx_debug_init();
-
+    //调用ngx_strerror_init函数完成对错误码和错误信息的初始化
     if (ngx_strerror_init() != NGX_OK) {
         return 1;
     }
 
-    if (ngx_get_options(argc, argv) != NGX_OK) {
+    if (ngx_get_options(argc, argv) != NGX_OK) {//读取指令
         return 1;
     }
 

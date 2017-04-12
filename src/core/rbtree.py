@@ -14,6 +14,7 @@ class rbtree(object):
 	def __init__(self, sentinel):
 		self.root = Node(data = 0, lchild = sentinel, rchild = sentinel, parent = sentinel, color = 0)
 		self.sentinel = sentinel
+
 	def insert_value(self,value):
 		p = self.root
 		while True:
@@ -78,7 +79,7 @@ class rbtree(object):
 			node.parent = None
 			node.rchild = lchild = None
 			return
-		red = is_red(subst)
+		flag_red = is_red(subst)
 		if subst == subst.parent.lchild:
 			subst.parent.lchild = temp
 		else:
@@ -101,21 +102,22 @@ class rbtree(object):
 					node.parent.lchild = subst
 				else:
 					node.parent.rchild = subst
-			if node.lchild != self.sentinel:
-				subst.lchild = node.lchild
-			if node.rchild != self.sentinel:
-				subst.rchild = node.lchild
+			if subst.lchild != self.sentinel:
+				subst.lchild.parent = subst
+			if subst.rchild != self.sentinel:
+				subst.rchild.parent = subst
 		node.lchild = None
 		node.rchild = None
 		node.parent = None
 		node.data = 0
-		if red:
+		if flag_red:
 			return
 		"""
 		balance rbtree
 		"""
 		while(temp != self.root and is_black(temp)):
-			if temp = temp.parent.lchild:
+			
+			if temp == temp.parent.lchild:
 				p = temp.parent.rchild
 				if is_red(p):
 					rbtree_left_rotate(self,temp.parent)
@@ -128,7 +130,7 @@ class rbtree(object):
 				else:
 					if is_black(p.rchild):
 						black(p.lchild)
-						rbtree_right_rotate(p)
+						rbtree_right_rotate(self,p)
 						red(p)
 						p = temp.parent.rchild
 					rbtree_left_rotate(self,temp.parent)
@@ -138,7 +140,27 @@ class rbtree(object):
 					temp = self.root
 			else:
 				p = temp.parent.lchild
-				if is_red
+				if is_red(p):
+					rbtree_right_rotate(self,temp.parent)
+					black(p)
+					red(temp.parent)
+					p = temp.parent.lchild
+				if is_black(p.lchild) and is_black(p.rchild):
+					red(p)
+					temp = temp.parent
+				else:
+					if is_black(p.lchild):
+						black(p.rchild)
+						rbtree_left_rotate(self,p)
+						red(p)
+						p = temp.parent.lchild
+					rbtree_right_rotate(self,temp.parent)
+					p.color = temp.parent.color
+					black(temp.parent)
+					black(p.lchild)
+					temp = self.root
+		black(temp)			
+
 
 
 
